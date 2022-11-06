@@ -2090,6 +2090,7 @@ void MainWidget::showAnimated(const QPixmap &bgAnimCache, bool back) {
 }
 
 void MainWidget::animationCallback() {
+    qDebug() << "MainWidget::animationCallback";
 	update();
 	if (!_a_show.animating()) {
 		_cacheUnder = _cacheOver = QPixmap();

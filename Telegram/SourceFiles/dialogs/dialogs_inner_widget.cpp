@@ -63,6 +63,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "styles/style_window.h"
 #include "styles/style_menu_icons.h"
 
+#include <execinfo.h>
+
 namespace Dialogs {
 namespace {
 
@@ -3360,6 +3362,7 @@ void InnerWidget::updateRowCornerStatusShown(not_null<History*> history) {
 	if (const auto &[row, top] = findRow(history); row != nullptr) {
 		const auto visible = (top < _visibleBottom)
 			&& (top + _st->height > _visibleTop);
+		qDebug() << "InnerWidget::updateRowCornerStatusShown";
 		row->updateCornerBadgeShown(
 			history->peer,
 			visible ? Fn<void()>(crl::guard(this, repaint)) : nullptr);

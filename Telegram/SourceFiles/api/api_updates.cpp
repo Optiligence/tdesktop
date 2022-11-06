@@ -940,6 +940,7 @@ void Updates::updateOnline(crl::time lastNonIdleTime, bool gotOtherOffline) {
 
 		const auto self = session().user();
 		self->onlineTill = base::unixtime::now() + (isOnline ? (config.onlineUpdatePeriod / 1000) : -1);
+		qDebug() << "Updates::updateOnline " << isOnline << self->onlineTill;
 		session().changes().peerUpdated(
 			self,
 			Data::PeerUpdate::Flag::OnlineStatus);
@@ -1854,6 +1855,7 @@ void Updates::feedUpdate(const MTPUpdate &update) {
 			case mtpc_userStatusOffline: user->onlineTill = d.vstatus().c_userStatusOffline().vwas_online().v; break;
 			case mtpc_userStatusOnline: user->onlineTill = d.vstatus().c_userStatusOnline().vexpires().v; break;
 			}
+			qDebug() << "Updates::feedUpdate " << user << user->onlineTill;
 			session().changes().peerUpdated(
 				user,
 				Data::PeerUpdate::Flag::OnlineStatus);

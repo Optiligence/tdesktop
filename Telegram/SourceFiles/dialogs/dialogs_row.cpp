@@ -7,6 +7,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #include "dialogs/dialogs_row.h"
 
+#include "qtimer.h"
 #include "ui/effects/ripple_animation.h"
 #include "ui/text/text_options.h"
 #include "ui/text/text_utilities.h"
@@ -24,6 +25,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "base/unixtime.h"
 #include "mainwidget.h"
 #include "styles/style_dialogs.h"
+#include <random>
 
 namespace Dialogs {
 namespace {
@@ -209,6 +211,17 @@ void Row::updateCornerBadgeShown(
 		}
 		return false;
 	}();
+    static bool shown2;
+    static QTimer t;
+    if (!t.isActive()) {
+        t.start(2000);
+        t.callOnTimeout([&](){
+//            shown2 = !shown2;
+//            qDebug() << "set shown" << shown << !!updateCallback;
+//            setCornerBadgeShown(shown, nullptr);
+        });
+    }
+//    qDebug() << "updateCornerBadgeShown" << shown;
 	setCornerBadgeShown(shown, std::move(updateCallback));
 	if (shown && user) {
 		peer->owner().watchForOffline(user, now);
@@ -219,6 +232,7 @@ void Row::ensureCornerBadgeUserpic() const {
 	if (_cornerBadgeUserpic) {
 		return;
 	}
+    qDebug() << "ensureCornerBadgeUserpic2";
 	_cornerBadgeUserpic = std::make_unique<CornerBadgeUserpic>();
 }
 
@@ -229,7 +243,6 @@ void Row::PaintCornerBadgeFrame(
 		std::shared_ptr<Data::CloudImageView> &view,
 		const Ui::PaintContext &context) {
 	data->frame.fill(Qt::transparent);
-
 	Painter q(&data->frame);
 	PaintUserpic(
 		q,
@@ -260,6 +273,7 @@ void Row::PaintCornerBadgeFrame(
 	q.setBrush(data->active
 		? st::dialogsOnlineBadgeFgActive
 		: st::dialogsOnlineBadgeFg);
+    qWarning() << "PaintCornerBadgeFrame" << "shown" << data->shown << "active" << data->active << "isUser" << peer->isUser() << shrink << skip << size << stroke << data->key;
 	q.drawEllipse(QRectF(
 		context.st->photoSize - skip.x() - size,
 		context.st->photoSize - skip.y() - size,
