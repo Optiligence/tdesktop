@@ -56,6 +56,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "styles/style_window.h"
 #include "styles/style_menu_icons.h"
 
+#include <execinfo.h>
+
 namespace Dialogs {
 namespace {
 
@@ -381,6 +383,13 @@ void InnerWidget::changeOpenedFolder(Data::Folder *folder) {
 }
 
 void InnerWidget::paintEvent(QPaintEvent *e) {
+//    qWarning() << "stack";
+	void *array[30];
+	// get void*'s for all entries on the stack
+	size_t size = backtrace(array, 30);
+	// print out all the frames to stderr
+//    backtrace_symbols_fd(array, size, STDERR_FILENO);
+
 	Painter p(this);
 
 	const auto r = e->rect();
@@ -427,6 +436,7 @@ void InnerWidget::paintEvent(QPaintEvent *e) {
 				}
 				const auto isActive = (row->key() == active);
 				const auto isSelected = (row->key() == selected);
+//                qDebug() << "Ui::RowPainter::paint(1";
 				Ui::RowPainter::paint(
 					p,
 					row,
@@ -545,6 +555,7 @@ void InnerWidget::paintEvent(QPaintEvent *e) {
 						: (from == (isPressed()
 							? _filteredPressed
 							: _filteredSelected));
+					qDebug() << "Ui::RowPainter::paint(2";
 					Ui::RowPainter::paint(
 						p,
 						_filterResults[from],
@@ -637,6 +648,7 @@ void InnerWidget::paintEvent(QPaintEvent *e) {
 						: (from == (isPressed()
 							? _searchedPressed
 							: _searchedSelected));
+					qDebug() << "Ui::RowPainter::paint(3";
 					Ui::RowPainter::paint(
 						p,
 						result.get(),
@@ -2997,6 +3009,7 @@ void InnerWidget::groupHasCallUpdated(not_null<PeerData*> peer) {
 void InnerWidget::updateRowCornerStatusShown(
 		not_null<History*> history,
 		bool shown) {
+//    qDebug() << "updateRowCornerStatusShown" << shown;
 	const auto repaint = [=] {
 		updateDialogRowCornerStatus(history);
 	};
@@ -3021,7 +3034,7 @@ void InnerWidget::updateRowCornerStatusShown(
 			&& (top + st::dialogsRowHeight > _visibleTop);
 		row->updateCornerBadgeShown(
 			history->peer,
-			visible ? Fn<void()>(crl::guard(this, repaint)) : nullptr);
+			Fn<void()>(crl::guard(this, repaint)));
 	}
 }
 

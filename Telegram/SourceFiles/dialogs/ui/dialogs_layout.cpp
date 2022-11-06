@@ -315,6 +315,7 @@ void paintRow(
 		crl::time ms,
 		PaintItemCallback &&paintItemCallback,
 		PaintCounterCallback &&paintCounterCallback) {
+//    qDebug() << "paintRow";
 	const auto supportMode = entry->session().supportMode();
 	if (supportMode) {
 		draft = nullptr;

@@ -83,7 +83,7 @@ private:
 	mutable std::shared_ptr<Data::CloudImageView> _userpic;
 	mutable std::unique_ptr<Ui::RippleAnimation> _ripple;
 	mutable std::unique_ptr<CornerBadgeUserpic> _cornerBadgeUserpic;
-	mutable bool _cornerBadgeShown = false;
+    mutable bool _cornerBadgeVisible = false;
 
 };
 
