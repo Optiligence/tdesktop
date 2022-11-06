@@ -18,6 +18,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "main/main_session.h"
 #include "main/main_account.h"
 #include "main/main_app_config.h"
+#include "settings.h"
 #include "ui/image/image_prepare.h"
 #include "base/unixtime.h"
 
@@ -429,27 +430,29 @@ QString OnlineText(TimeId online, TimeId now) {
 		return *common;
 	}
 	const auto minutes = (now - online) / 60;
+	const auto hours = (now - online) / 3600+1;
+	const auto onlineFull = base::unixtime::parse(online);
+	const auto onlineTime = onlineFull.time().toString(cTimeFormat());
+//	const auto onlineTime = locale.toString(onlineFull.time(), cTimeFormat());
 	if (!minutes) {
 		return tr::lng_status_lastseen_now(tr::now);
-	} else if (minutes < 60) {
-		return tr::lng_status_lastseen_minutes(tr::now, lt_count, minutes);
+	} else if (minutes < 30) {
+		return QObject::tr("seen %1 mins ago").arg(minutes);
+	} else if (minutes < 75) {
+		return QObject::tr("seen %1 (%2 min ago)").arg(onlineTime).arg(minutes);
 	}
-	const auto hours = (now - online) / 3600;
 	if (hours < 12) {
-		return tr::lng_status_lastseen_hours(tr::now, lt_count, hours);
+		return "seen at " + onlineTime + " (" + QString::number(hours) + " h ago)";
 	}
-	const auto onlineFull = base::unixtime::parse(online);
 	const auto nowFull = base::unixtime::parse(now);
 	const auto locale = QLocale();
 	if (onlineFull.date() == nowFull.date()) {
-		const auto onlineTime = locale.toString(onlineFull.time(), cTimeFormat());
-		return tr::lng_status_lastseen_today(tr::now, lt_time, onlineTime);
+		return QObject::tr("seen today %1").arg(onlineTime);
 	} else if (onlineFull.date().addDays(1) == nowFull.date()) {
-		const auto onlineTime = locale.toString(onlineFull.time(), cTimeFormat());
-		return tr::lng_status_lastseen_yesterday(tr::now, lt_time, onlineTime);
+		return QObject::tr("seen yesterday %1").arg(onlineTime);
 	}
 	const auto date = locale.toString(onlineFull.date(), cDateFormat());
-	return tr::lng_status_lastseen_date(tr::now, lt_date, date);
+	return QObject::tr("last seen on %1").arg(date);
 }
 
 QString OnlineText(not_null<UserData*> user, TimeId now) {
