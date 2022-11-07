@@ -3341,7 +3341,7 @@ void InnerWidget::repaintDialogRowCornerStatus(not_null<History*> history) {
 }
 
 void InnerWidget::userOnlineUpdated(not_null<UserData*> user) {
-	if (!user->isSelf()) {
+	if (user->isSelf()) {
 		return;
 	}
 	const auto history = session().data().historyLoaded(user);
@@ -3364,7 +3364,12 @@ void InnerWidget::groupHasCallUpdated(not_null<PeerData*> peer) {
 }
 
 void InnerWidget::updateRowCornerStatusShown(not_null<History*> history) {
-//	qDebug() << "updateRowCornerStatusShown";
+	const auto repaint = [this] {
+		this->update();
+//		repaintDialogRowCornerStatus(history);
+	};
+	repaint();
+
 	const auto findRow = [&](not_null<History*> history)
 		-> std::pair<Row*, int> {
 		if (state() == WidgetState::Default) {
@@ -3382,10 +3387,9 @@ void InnerWidget::updateRowCornerStatusShown(not_null<History*> history) {
 	if (const auto &[row, top] = findRow(history); row != nullptr) {
 		const auto visible = (top < _visibleBottom)
 			&& (top + _st->height > _visibleTop);
-//		qDebug() << "InnerWidget::updateRowCornerStatusShown";
-//		Fn<void()>(crl::guard(this, repaint))
-		row->updateCornerBadgeShown(history->peer, [this]{repaint();});// visible
-//		row->updateCornerBadgeShown(history->peer, visible ? row->_update : nullptr);
+		row->updateCornerBadgeShown(
+			history->peer,
+			visible ? Fn<void()>(crl::guard(this, repaint)) : nullptr);
 	}
 }
 
