@@ -144,7 +144,7 @@ private:
 	mutable uint32 _listEntryCacheVersion = 0;
 	mutable Ui::Text::String _listEntryCache;
 	mutable std::unique_ptr<CornerBadgeUserpic> _cornerBadgeUserpic;
-	mutable bool _cornerBadgeVisible = false;
+	mutable bool _cornerBadgeShown = false;
 
 };
 

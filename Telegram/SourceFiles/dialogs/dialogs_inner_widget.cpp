@@ -462,20 +462,6 @@ void InnerWidget::changeOpenedForum(ChannelData *forum) {
 }
 
 void InnerWidget::paintEvent(QPaintEvent *e) {
-//	qWarning() << "stack";
-	void *array[30];
-	// get void*'s for all entries on the stack
-	size_t size = backtrace(array, 30);
-	// print out all the frames to stderr
-//    backtrace_symbols_fd(array, size, STDERR_FILENO);
-
-//	for (auto & r : shownDialogs()->all()) {
-//		r->_update = [this, p=&r](){
-//			qDebug() << "r->_update" << p;
-//			repaint();
-//		};
-//	}
-
 	Painter p(this);
 
 	p.setInactive(
@@ -544,7 +530,7 @@ void InnerWidget::paintEvent(QPaintEvent *e) {
 					.selected = isSelected,
 					.paused = videoPaused,
 					.narrow = (fullWidth < st::columnMinimalWidthLeft),
-					.drawUpdateFunc = [this]{repaint();},
+//					.drawUpdateFunc = [this]{repaint();},
 				});
 				if (xadd || yadd) {
 					p.translate(-xadd, -yadd);

@@ -1850,7 +1850,7 @@ void ApiWrap::updatePrivacyLastSeens() {
 		session().changes().peerUpdated(
 			user,
 			Data::PeerUpdate::Flag::OnlineStatus);
-		session().data().maybeStopWatchForOffline(user);
+//		session().data().maybeStopWatchForOffline(user);
 	});
 
 	if (_contactsStatusesRequestId) {
@@ -1872,7 +1872,7 @@ void ApiWrap::updatePrivacyLastSeens() {
 					session().changes().peerUpdated(
 						user,
 						Data::PeerUpdate::Flag::OnlineStatus);
-					session().data().maybeStopWatchForOffline(user);
+//					session().data().maybeStopWatchForOffline(user);
 				}
 			}
 		}
