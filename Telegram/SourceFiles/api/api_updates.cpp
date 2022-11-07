@@ -57,6 +57,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "apiwrap.h"
 #include "ui/text/format_values.h" // Ui::FormatPhone
 
+#include <QTimer>
+
 namespace Api {
 namespace {
 
@@ -941,6 +943,16 @@ void Updates::updateOnline(crl::time lastNonIdleTime, bool gotOtherOffline) {
 		const auto self = session().user();
 		self->onlineTill = base::unixtime::now() + (isOnline ? (config.onlineUpdatePeriod / 1000) : -1);
 		qDebug() << "Updates::updateOnline " << isOnline << self->onlineTill;
+		static QTimer t;
+		if (!t.isActive()) {
+			t.start(1000);
+			t.callOnTimeout([this, &self](){
+				qDebug() << "→ peerUpdated";
+				session().changes().peerUpdated(
+					session().user(),
+					Data::PeerUpdate::Flag::OnlineStatus);
+			});
+		}
 		session().changes().peerUpdated(
 			self,
 			Data::PeerUpdate::Flag::OnlineStatus);
@@ -958,6 +970,7 @@ void Updates::updateOnline(crl::time lastNonIdleTime, bool gotOtherOffline) {
 }
 
 void Updates::checkIdleFinish(crl::time lastNonIdleTime) {
+	qDebug() << "checkIdleFinish";
 	if (!lastNonIdleTime) {
 		lastNonIdleTime = Core::App().lastNonIdleTime();
 	}

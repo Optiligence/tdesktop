@@ -147,7 +147,8 @@ void BasicRow::paintUserpic(
 
 Row::Row(Key key, int pos) : _id(key), _pos(pos) {
 	if (const auto history = key.history()) {
-		updateCornerBadgeShown(history->peer);
+		qDebug() << "updateCornerBadgeShown" << "row row";
+		updateCornerBadgeShown(history->peer, _update);
 	}
 }
 
@@ -173,17 +174,17 @@ void Row::validateListEntryCache() const {
 }
 
 void Row::setCornerBadgeShown(
-		bool shown,
+		bool shouldShow,
 		Fn<void()> updateCallback) const {
-	if (_cornerBadgeVisible == shown) {
+//    try {
+//        updateCallback = dynamic_cast<const FakeRow &>(*this).repaint();
+//    } catch (...) {}
+	if (_cornerBadgeVisible == shouldShow) {
 		return;
 	}
-	_cornerBadgeVisible = shown;
-	if (_cornerBadgeUserpic && _cornerBadgeUserpic->animation.animating()) {
-		_cornerBadgeUserpic->animation.change(
-			_cornerBadgeVisible ? 1. : 0.,
-			st::dialogsOnlineBadgeDuration);
-	} else if (updateCallback) {
+	qDebug() << "setCornerBadgeShown" << shouldShow << !!_update << !!updateCallback;
+	if (updateCallback) {
+		qDebug() << "ensureCornerBadgeUserpic" << shouldShow;
 		ensureCornerBadgeUserpic();
 		_cornerBadgeUserpic->animation.start(
 			std::move(updateCallback),
@@ -191,38 +192,58 @@ void Row::setCornerBadgeShown(
 			_cornerBadgeVisible ? 1. : 0.,
 			st::dialogsOnlineBadgeDuration);
 	}
+	qDebug() << !!_cornerBadgeUserpic << shouldShow;
+	qWarning() << "setCornerBadgeShown" << _cornerBadgeVisible << shouldShow << !!updateCallback
+			   << !!_cornerBadgeUserpic << (_cornerBadgeUserpic && _cornerBadgeUserpic->animation.animating());
+	if (_cornerBadgeUserpic && _cornerBadgeUserpic->animation.animating()) {
+		qDebug() << "animating" << _cornerBadgeUserpic->animation.value(_cornerBadgeVisible);
+		_cornerBadgeUserpic->animation.change(
+			_cornerBadgeVisible ? 1. : 0.,
+			st::dialogsOnlineBadgeDuration);
+	}
+	if (_cornerBadgeVisible == shouldShow) {
+		return;
+	}
+	_cornerBadgeVisible = shouldShow;
 	if (!_cornerBadgeVisible
 		&& _cornerBadgeUserpic
 		&& !_cornerBadgeUserpic->animation.animating()) {
+		qDebug() << "deleting" << !!_cornerBadgeUserpic << _cornerBadgeUserpic->animation.animating();
+//        exit(0);
 		_cornerBadgeUserpic = nullptr;
 	}
+	qWarning() << "setCornerBadgeShown2" << _cornerBadgeVisible << shouldShow << !!updateCallback
+			   << !!_cornerBadgeUserpic << (_cornerBadgeUserpic && _cornerBadgeUserpic->animation.animating());
 }
 
 void Row::updateCornerBadgeShown(
 		not_null<PeerData*> peer,
 		Fn<void()> updateCallback) const {
+//    if (!!updateCallback) {
+//        _update = updateCallback;
+//    }
 	const auto user = peer->asUser();
 	const auto now = user ? base::unixtime::now() : TimeId();
-	const auto shown = [&] {
-		if (user) {
-			return Data::IsUserOnline(user, now);
-		} else if (const auto channel = peer->asChannel()) {
-			return Data::ChannelHasActiveCall(channel);
-		}
-		return false;
-	}();
-	static bool shown2;
+//    const auto shown = [&] {
+//        if (user) {
+//            return Data::IsUserOnline(user, now);
+//        } else if (const auto channel = peer->asChannel()) {
+//            return Data::ChannelHasActiveCall(channel);
+//        }
+//        return false;
+//    }();
+	static bool shown{false};
 	static QTimer t;
 	if (!t.isActive()) {
 		t.start(2000);
-		t.callOnTimeout([&](){
-//            shown2 = !shown2;
-//            qDebug() << "set shown" << shown << !!updateCallback;
-//            setCornerBadgeShown(shown, nullptr);
+		t.callOnTimeout([this, updateCallback](){
+			qDebug() << "set shown" << shown;
+			shown = !shown;
+			setCornerBadgeShown(shown, updateCallback);
 		});
 	}
 //    qDebug() << "updateCornerBadgeShown" << shown;
-	setCornerBadgeShown(shown, std::move(updateCallback));
+	setCornerBadgeShown(shown, updateCallback);
 	if (shown && user) {
 		peer->owner().watchForOffline(user, now);
 	}
@@ -243,6 +264,7 @@ void Row::PaintCornerBadgeFrame(
 		std::shared_ptr<Data::CloudImageView> &view,
 		const Ui::PaintContext &context) {
 	data->frame.fill(Qt::transparent);
+
 	Painter q(&data->frame);
 	PaintUserpic(
 		q,
@@ -288,11 +310,14 @@ void Row::paintUserpic(
 		Ui::VideoUserpic *videoUserpic,
 		History *historyForCornerBadge,
 		const Ui::PaintContext &context) const {
-	updateCornerBadgeShown(peer);
+	qDebug() << "paintUserpic";
+	updateCornerBadgeShown(peer, _update);
+//    row->addRipple(e->pos() - QPoint(0, searchedOffset() + _searchedPressed * _st->height), QSize(width(), _st->height), row->repaint());
 
 	const auto shown = _cornerBadgeUserpic
 		? _cornerBadgeUserpic->animation.value(_cornerBadgeVisible ? 1. : 0.)
-		: (_cornerBadgeVisible ? 1. : 0.);
+		: _cornerBadgeVisible;
+	qDebug() << "shown" << !!_cornerBadgeUserpic << !!_cornerBadgeVisible << shown;
 	if (!historyForCornerBadge || shown == 0.) {
 		BasicRow::paintUserpic(
 			p,
@@ -300,11 +325,18 @@ void Row::paintUserpic(
 			videoUserpic,
 			historyForCornerBadge,
 			context);
-		if (!historyForCornerBadge || !_cornerBadgeVisible) {
+		if (!historyForCornerBadge) {
+			qDebug() << "deleting2" << !historyForCornerBadge << shown
+					 << !!_cornerBadgeUserpic << (_cornerBadgeUserpic && _cornerBadgeUserpic->animation.animating());
 			_cornerBadgeUserpic = nullptr;
 		}
+		qDebug() << "return";
 		return;
 	}
+	if (!_cornerBadgeUserpic) {
+		qDebug() << "ensureCornerBadgeUserpic3";
+	}
+	qDebug() << "paintUserpic" << &p << _cornerBadgeVisible;
 	ensureCornerBadgeUserpic();
 	const auto ratio = style::DevicePixelRatio();
 	const auto added = std::max({

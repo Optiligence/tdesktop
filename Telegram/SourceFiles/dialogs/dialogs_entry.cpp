@@ -364,6 +364,7 @@ void Entry::addChatListEntryByLetter(
 
 void Entry::updateChatListEntry() {
 	_flags &= ~Flag::UpdatePostponed;
+	qDebug() << "Entry::updateChatListEntry";
 	session().changes().entryUpdated(this, Data::EntryUpdate::Flag::Repaint);
 }
 

@@ -37,6 +37,7 @@ enum class SortMode;
 
 class BasicRow {
 public:
+	mutable Fn<void()> _update;
 	BasicRow();
 	virtual ~BasicRow();
 
@@ -70,13 +71,13 @@ private:
 class List;
 class Row : public BasicRow {
 public:
-	explicit Row(std::nullptr_t) {
-	}
+//	explicit Row(std::nullptr_t) {
+//	}
 	Row(Key key, int pos);
 
 	void updateCornerBadgeShown(
 		not_null<PeerData*> peer,
-		Fn<void()> updateCallback = nullptr) const;
+		Fn<void()> updateCallback) const;
 	void paintUserpic(
 		Painter &p,
 		not_null<PeerData*> peer,
@@ -143,7 +144,7 @@ private:
 	mutable uint32 _listEntryCacheVersion = 0;
 	mutable Ui::Text::String _listEntryCache;
 	mutable std::unique_ptr<CornerBadgeUserpic> _cornerBadgeUserpic;
-    mutable bool _cornerBadgeVisible = false;
+	mutable bool _cornerBadgeVisible = false;
 
 };
 

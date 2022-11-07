@@ -758,6 +758,7 @@ void PeerListRow::stopLastRipple() {
 }
 
 void PeerListRow::paintRipple(Painter &p, int x, int y, int outerWidth) {
+	qDebug() << "PeerListRow::paintRipple";
 	if (_ripple) {
 		_ripple->paint(p, x, y, outerWidth);
 		if (_ripple->empty()) {
@@ -1554,6 +1555,7 @@ crl::time PeerListContent::paintRow(
 		Painter &p,
 		crl::time now,
 		RowIndex index) {
+	qDebug() << "PeerListContent::paintRow";
 	const auto row = getRow(index);
 	Assert(row != nullptr);
 

@@ -1988,7 +1988,7 @@ void HistoryWidget::showHistory(
 		const PeerId &peerId,
 		MsgId showAtMsgId,
 		bool reload) {
-    qDebug() << "showHistory" << reload;
+	qDebug() << "showHistory" << reload;
 	_pinnedClickedId = FullMsgId();
 	_minPinnedId = std::nullopt;
 
@@ -2617,7 +2617,7 @@ std::optional<QString> HistoryWidget::writeRestriction() const {
 }
 
 void HistoryWidget::updateControlsVisibility() {
-    qDebug() << "updateControlsVisibility" << _a_show.animating();
+//	qDebug() << "updateControlsVisibility" << _a_show.animating();
 	if (!_a_show.animating()) {
 		_topShadow->setVisible(_peer != nullptr);
 		_topBar->setVisible(_peer != nullptr);
@@ -3970,7 +3970,7 @@ void HistoryWidget::showAnimated(
 }
 
 void HistoryWidget::animationCallback() {
-    qDebug() << "animationCallback";
+	qDebug() << "animationCallback";
 	update();
 	if (!_a_show.animating()) {
 		_cornerButtons.finishAnimations();
@@ -5217,7 +5217,7 @@ void HistoryWidget::updateHistoryItemsByTimer() {
 	if (!_list) {
 		return;
 	}
-    qDebug() << "updateHistoryItemsByTimer";
+//	qDebug() << "updateHistoryItemsByTimer";
 
 	auto ms = crl::now();
 	if (_lastScrolled + kSkipRepaintWhileScrollMs <= ms) {
@@ -5229,7 +5229,7 @@ void HistoryWidget::updateHistoryItemsByTimer() {
 }
 
 void HistoryWidget::handlePendingHistoryUpdate() {
-    qDebug() << "handlePendingHistoryUpdate";
+	qDebug() << "handlePendingHistoryUpdate";
 	if (hasPendingResizedItems() || _updateHistoryGeometryRequired) {
 		updateHistoryGeometry();
 		_list->update();
@@ -5243,7 +5243,7 @@ void HistoryWidget::resizeEvent(QResizeEvent *e) {
 }
 
 void HistoryWidget::updateControlsGeometry() {
-    qDebug() << "updateControlsGeometry";
+//	qDebug() << "updateControlsGeometry";
 	_topBar->resizeToWidth(width());
 	_topBar->moveToLeft(0, 0);
 	_voiceRecordBar->resizeToWidth(width());
@@ -7136,7 +7136,7 @@ void HistoryWidget::updatePreview() {
 }
 
 void HistoryWidget::fullInfoUpdated() {
-    qWarning() << "fullInfoUpdated";
+	qWarning() << "fullInfoUpdated";
 	auto refresh = false;
 	if (_list) {
 		if (updateCanSendMessage()) {
@@ -7157,11 +7157,11 @@ void HistoryWidget::fullInfoUpdated() {
 		updateControlsVisibility();
 		updateControlsGeometry();
 	}
-    qWarning() << "fullInfoUpdated2" << refresh;
+	qWarning() << "fullInfoUpdated2" << refresh;
 }
 
 void HistoryWidget::handlePeerUpdate() {
-    qWarning() << "handlePeerUpdate";
+	qWarning() << "handlePeerUpdate" << _a_show.animating() << "_a_show.animating()";
 	bool resize = false;
 	updateHistoryGeometry();
 	if (_peer->isChat() && _peer->asChat()->noParticipantInfo()) {

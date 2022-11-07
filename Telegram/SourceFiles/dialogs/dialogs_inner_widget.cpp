@@ -450,6 +450,20 @@ void InnerWidget::changeOpenedForum(ChannelData *forum) {
 }
 
 void InnerWidget::paintEvent(QPaintEvent *e) {
+//	qWarning() << "stack";
+	void *array[30];
+	// get void*'s for all entries on the stack
+	size_t size = backtrace(array, 30);
+	// print out all the frames to stderr
+//    backtrace_symbols_fd(array, size, STDERR_FILENO);
+
+	for (auto & r : shownDialogs()->all()) {
+		r->_update = [this](){
+			qDebug() << "r->_update";
+			repaint();
+		};
+	}
+
 	Painter p(this);
 
 	p.setInactive(
@@ -502,6 +516,7 @@ void InnerWidget::paintEvent(QPaintEvent *e) {
 				const auto key = row->key();
 				const auto isActive = (key == active);
 				const auto isSelected = (key == selected);
+				qDebug() << "Ui::RowPainter::paint(1";
 				Ui::RowPainter::Paint(p, row, validateVideoUserpic(row), {
 					.st = _st,
 					.folder = _openedFolder,
@@ -627,6 +642,7 @@ void InnerWidget::paintEvent(QPaintEvent *e) {
 						: (from == (isPressed()
 							? _filteredPressed
 							: _filteredSelected));
+					qDebug() << "Ui::RowPainter::paint(2";
 					Ui::RowPainter::Paint(p, row, validateVideoUserpic(row), {
 						.st = _st,
 						.folder = _openedFolder,
@@ -667,6 +683,7 @@ void InnerWidget::paintEvent(QPaintEvent *e) {
 					const auto selected = (from == (isPressed()
 						? _peerSearchPressed
 						: _peerSearchSelected));
+					qDebug() << "Ui::RowPainter::paint(3";
 					paintPeerSearchResult(p, result.get(), {
 						.st = &st::defaultDialogRow,
 						.now = ms,
@@ -2473,6 +2490,7 @@ void InnerWidget::editOpenedFilter() {
 }
 
 void InnerWidget::refresh(bool toTop) {
+	qDebug() << "InnerWidget::refresh" << toTop;
 	if (needCollapsedRowsRefresh()) {
 		return refreshWithCollapsedRows(toTop);
 	}
@@ -3280,6 +3298,7 @@ void InnerWidget::setupOnlineStatusCheck() {
 		Data::PeerUpdate::Flag::OnlineStatus
 		| Data::PeerUpdate::Flag::GroupCall
 	) | rpl::start_with_next([=](const Data::PeerUpdate &update) {
+		qDebug() << "PeerUpdate";
 		if (const auto user = update.peer->asUser()) {
 			userOnlineUpdated(user);
 		} else {
@@ -3340,6 +3359,7 @@ void InnerWidget::groupHasCallUpdated(not_null<PeerData*> peer) {
 }
 
 void InnerWidget::updateRowCornerStatusShown(not_null<History*> history) {
+	qDebug() << "updateRowCornerStatusShown";
 	const auto repaint = [=] {
 		repaintDialogRowCornerStatus(history);
 	};
@@ -3363,9 +3383,11 @@ void InnerWidget::updateRowCornerStatusShown(not_null<History*> history) {
 		const auto visible = (top < _visibleBottom)
 			&& (top + _st->height > _visibleTop);
 		qDebug() << "InnerWidget::updateRowCornerStatusShown";
+//		row->_update = Fn<void()>(crl::guard(this, repaint));
 		row->updateCornerBadgeShown(
-			history->peer,
-			visible ? Fn<void()>(crl::guard(this, repaint)) : nullptr);
+			history->peer, row->_update);
+//			visible ? Fn<void()>(crl::guard(this, repaint)) : nullptr);
+//                    Fn<void()>(crl::guard(this, repaint)));
 	}
 }
 
