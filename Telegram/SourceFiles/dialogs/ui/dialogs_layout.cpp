@@ -256,10 +256,6 @@ void PaintRow(
 		BadgesState badgesState,
 		base::flags<Flag> flags,
 		PaintItemCallback &&paintItemCallback) {
-//	if (!!customEmojiRepaint) {
-//		qDebug() << row << !!customEmojiRepaint;
-//		row->_update = customEmojiRepaint;
-//	}
 	const auto supportMode = entry->session().supportMode();
 	if (supportMode) {
 		draft = nullptr;
@@ -930,7 +926,6 @@ void RowPainter::Paint(
 			view->paint(p, rect, context);
 		}
 	};
-	qDebug() << "RowPainter::Paint";
 	PaintRow(
 		p,
 		row,
@@ -1028,7 +1023,6 @@ void RowPainter::Paint(
 		&& !row->searchInChat();
 	const auto flags = (showSavedMessages ? Flag::SavedMessages : Flag(0))
 		| (showRepliesMessages ? Flag::RepliesMessages : Flag(0));
-	qDebug() << "RowPainter::Paint FakeRow";
 	PaintRow(
 		p,
 		row,
