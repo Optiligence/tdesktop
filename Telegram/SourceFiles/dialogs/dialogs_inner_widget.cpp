@@ -457,12 +457,12 @@ void InnerWidget::paintEvent(QPaintEvent *e) {
 	// print out all the frames to stderr
 //    backtrace_symbols_fd(array, size, STDERR_FILENO);
 
-	for (auto & r : shownDialogs()->all()) {
-		r->_update = [this](){
-//			qDebug() << "r->_update";
-			repaint();
-		};
-	}
+//	for (auto & r : shownDialogs()->all()) {
+//		r->_update = [this, p=&r](){
+//			qDebug() << "r->_update" << p;
+//			repaint();
+//		};
+//	}
 
 	Painter p(this);
 
@@ -504,6 +504,10 @@ void InnerWidget::paintEvent(QPaintEvent *e) {
 
 			const auto promoted = fixedOnTopCount();
 			const auto paintDialog = [&](not_null<Row*> row) {
+//				row->_update = [this, p=&row](){
+////					qDebug() << "r->_update" << p;
+//					repaint();
+//				};
 				const auto pinned = row->pos() - promoted;
 				const auto count = _pinnedRows.size();
 				const auto xadd = 0;
@@ -528,6 +532,7 @@ void InnerWidget::paintEvent(QPaintEvent *e) {
 					.selected = isSelected,
 					.paused = videoPaused,
 					.narrow = (fullWidth < st::columnMinimalWidthLeft),
+					.drawUpdateFunc = [this]{repaint();},
 				});
 				if (xadd || yadd) {
 					p.translate(-xadd, -yadd);
@@ -3360,11 +3365,6 @@ void InnerWidget::groupHasCallUpdated(not_null<PeerData*> peer) {
 
 void InnerWidget::updateRowCornerStatusShown(not_null<History*> history) {
 //	qDebug() << "updateRowCornerStatusShown";
-	const auto repaint = [=] {
-		repaintDialogRowCornerStatus(history);
-	};
-	repaint();
-
 	const auto findRow = [&](not_null<History*> history)
 		-> std::pair<Row*, int> {
 		if (state() == WidgetState::Default) {
@@ -3383,7 +3383,9 @@ void InnerWidget::updateRowCornerStatusShown(not_null<History*> history) {
 		const auto visible = (top < _visibleBottom)
 			&& (top + _st->height > _visibleTop);
 //		qDebug() << "InnerWidget::updateRowCornerStatusShown";
-		row->updateCornerBadgeShown(history->peer, visible ? row->_update : nullptr);
+//		Fn<void()>(crl::guard(this, repaint))
+		row->updateCornerBadgeShown(history->peer, [this]{repaint();});// visible
+//		row->updateCornerBadgeShown(history->peer, visible ? row->_update : nullptr);
 	}
 }
 

@@ -148,7 +148,7 @@ void BasicRow::paintUserpic(
 Row::Row(Key key, int pos) : _id(key), _pos(pos) {
 	if (const auto history = key.history()) {
 		qDebug() << "updateCornerBadgeShown" << "row row";
-		updateCornerBadgeShown(history->peer, _update);
+		updateCornerBadgeShown(history->peer, []{});
 	}
 }
 
@@ -307,7 +307,7 @@ void Row::paintUserpic(
 		History *historyForCornerBadge,
 		const Ui::PaintContext &context) const {
 //	qDebug() << "paintUserpic";
-	updateCornerBadgeShown(peer, _update);
+	updateCornerBadgeShown(peer, []{});
 //    row->addRipple(e->pos() - QPoint(0, searchedOffset() + _searchedPressed * _st->height), QSize(width(), _st->height), row->repaint());
 
 	const auto shown = _cornerBadgeUserpic
