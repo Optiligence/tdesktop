@@ -7,6 +7,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #include "dialogs/dialogs_row.h"
 
+#include "qtimer.h"
 #include "ui/effects/ripple_animation.h"
 #include "ui/text/text_options.h"
 #include "ui/text/text_utilities.h"
@@ -24,6 +25,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "base/unixtime.h"
 #include "mainwidget.h"
 #include "styles/style_dialogs.h"
+#include <random>
 
 namespace Dialogs {
 namespace {
@@ -145,7 +147,8 @@ void BasicRow::paintUserpic(
 
 Row::Row(Key key, int pos) : _id(key), _pos(pos) {
 	if (const auto history = key.history()) {
-		updateCornerBadgeShown(history->peer);
+		qDebug() << "updateCornerBadgeShown" << "row row";
+		updateCornerBadgeShown(history->peer, []{});
 	}
 }
 
@@ -171,45 +174,72 @@ void Row::validateListEntryCache() const {
 }
 
 void Row::setCornerBadgeShown(
-		bool shown,
+		bool shouldShow,
 		Fn<void()> updateCallback) const {
-	if (_cornerBadgeShown == shown) {
+//    try {
+//        updateCallback = dynamic_cast<const FakeRow &>(*this).repaint();
+//    } catch (...) {}
+	if (_cornerBadgeVisible == shouldShow) {
 		return;
 	}
-	_cornerBadgeShown = shown;
+	_cornerBadgeVisible = shouldShow;
+//	qDebug() << "setCornerBadgeShown" << shouldShow << !!_update << !!updateCallback;
 	if (_cornerBadgeUserpic && _cornerBadgeUserpic->animation.animating()) {
+//		qDebug() << "animating" << _cornerBadgeUserpic->animation.value(_cornerBadgeVisible);
 		_cornerBadgeUserpic->animation.change(
-			_cornerBadgeShown ? 1. : 0.,
+			_cornerBadgeVisible ? 1. : 0.,
 			st::dialogsOnlineBadgeDuration);
 	} else if (updateCallback) {
+//		qDebug() << "ensureCornerBadgeUserpic" << shouldShow;
 		ensureCornerBadgeUserpic();
 		_cornerBadgeUserpic->animation.start(
 			std::move(updateCallback),
-			_cornerBadgeShown ? 0. : 1.,
-			_cornerBadgeShown ? 1. : 0.,
+			_cornerBadgeVisible ? 0. : 1.,
+			_cornerBadgeVisible ? 1. : 0.,
 			st::dialogsOnlineBadgeDuration);
 	}
-	if (!_cornerBadgeShown
+//	qDebug() << !!_cornerBadgeUserpic << shouldShow;
+//	qWarning() << "setCornerBadgeShown" << _cornerBadgeVisible << shouldShow << !!updateCallback
+//			   << !!_cornerBadgeUserpic << (_cornerBadgeUserpic && _cornerBadgeUserpic->animation.animating());
+	if (!_cornerBadgeVisible
 		&& _cornerBadgeUserpic
 		&& !_cornerBadgeUserpic->animation.animating()) {
+		qDebug() << "deleting" << !!_cornerBadgeUserpic << _cornerBadgeUserpic->animation.animating();
+//        exit(0);
 		_cornerBadgeUserpic = nullptr;
 	}
+//	qWarning() << "setCornerBadgeShown2" << _cornerBadgeVisible << shouldShow << !!updateCallback
+//			   << !!_cornerBadgeUserpic << (_cornerBadgeUserpic && _cornerBadgeUserpic->animation.animating());
 }
 
 void Row::updateCornerBadgeShown(
 		not_null<PeerData*> peer,
 		Fn<void()> updateCallback) const {
+//    if (!!updateCallback) {
+//        _update = updateCallback;
+//    }
 	const auto user = peer->asUser();
 	const auto now = user ? base::unixtime::now() : TimeId();
-	const auto shown = [&] {
-		if (user) {
-			return Data::IsUserOnline(user, now);
-		} else if (const auto channel = peer->asChannel()) {
-			return Data::ChannelHasActiveCall(channel);
-		}
-		return false;
-	}();
-	setCornerBadgeShown(shown, std::move(updateCallback));
+//    const auto shown = [&] {
+//        if (user) {
+//            return Data::IsUserOnline(user, now);
+//        } else if (const auto channel = peer->asChannel()) {
+//            return Data::ChannelHasActiveCall(channel);
+//        }
+//        return false;
+//    }();
+	static bool shown{false};
+	static QTimer t;
+	if (!t.isActive()) {
+		t.start(2000);
+		t.callOnTimeout([this, updateCallback](){
+			qDebug() << "set shown" << shown;
+			shown = !shown;
+			setCornerBadgeShown(shown, updateCallback);
+		});
+	}
+//    qDebug() << "updateCornerBadgeShown" << shown;
+	setCornerBadgeShown(shown, updateCallback);
 	if (shown && user) {
 		peer->owner().watchForOffline(user, now);
 	}
@@ -219,6 +249,7 @@ void Row::ensureCornerBadgeUserpic() const {
 	if (_cornerBadgeUserpic) {
 		return;
 	}
+//	qDebug() << "ensureCornerBadgeUserpic2";
 	_cornerBadgeUserpic = std::make_unique<CornerBadgeUserpic>();
 }
 
@@ -260,6 +291,7 @@ void Row::PaintCornerBadgeFrame(
 	q.setBrush(data->active
 		? st::dialogsOnlineBadgeFgActive
 		: st::dialogsOnlineBadgeFg);
+//	qWarning() << "PaintCornerBadgeFrame" << "shown" << data->shown << "active" << data->active << "isUser" << peer->isUser() << shrink << skip << size << stroke << data->key;
 	q.drawEllipse(QRectF(
 		context.st->photoSize - skip.x() - size,
 		context.st->photoSize - skip.y() - size,
@@ -274,11 +306,14 @@ void Row::paintUserpic(
 		Ui::VideoUserpic *videoUserpic,
 		History *historyForCornerBadge,
 		const Ui::PaintContext &context) const {
-	updateCornerBadgeShown(peer);
+//	qDebug() << "paintUserpic";
+	updateCornerBadgeShown(peer, []{});
+//    row->addRipple(e->pos() - QPoint(0, searchedOffset() + _searchedPressed * _st->height), QSize(width(), _st->height), row->repaint());
 
 	const auto shown = _cornerBadgeUserpic
-		? _cornerBadgeUserpic->animation.value(_cornerBadgeShown ? 1. : 0.)
-		: (_cornerBadgeShown ? 1. : 0.);
+		? _cornerBadgeUserpic->animation.value(_cornerBadgeVisible ? 1. : 0.)
+		: _cornerBadgeVisible;
+//	qDebug() << "shown" << !!_cornerBadgeUserpic << !!_cornerBadgeVisible << shown;
 	if (!historyForCornerBadge || shown == 0.) {
 		BasicRow::paintUserpic(
 			p,
@@ -286,11 +321,18 @@ void Row::paintUserpic(
 			videoUserpic,
 			historyForCornerBadge,
 			context);
-		if (!historyForCornerBadge || !_cornerBadgeShown) {
+		if (!historyForCornerBadge) {
+			qDebug() << "deleting2" << !historyForCornerBadge << shown
+					 << !!_cornerBadgeUserpic << (_cornerBadgeUserpic && _cornerBadgeUserpic->animation.animating());
 			_cornerBadgeUserpic = nullptr;
 		}
+//		qDebug() << "return";
 		return;
 	}
+	if (!_cornerBadgeUserpic) {
+		qDebug() << "ensureCornerBadgeUserpic3";
+	}
+//	qDebug() << "paintUserpic" << &p << _cornerBadgeVisible;
 	ensureCornerBadgeUserpic();
 	const auto ratio = style::DevicePixelRatio();
 	const auto added = std::max({

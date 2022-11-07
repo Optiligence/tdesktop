@@ -64,6 +64,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "styles/style_window.h"
 #include "styles/style_menu_icons.h"
 
+#include <execinfo.h>
+
 namespace Dialogs {
 namespace {
 
@@ -460,6 +462,20 @@ void InnerWidget::changeOpenedForum(ChannelData *forum) {
 }
 
 void InnerWidget::paintEvent(QPaintEvent *e) {
+//	qWarning() << "stack";
+	void *array[30];
+	// get void*'s for all entries on the stack
+	size_t size = backtrace(array, 30);
+	// print out all the frames to stderr
+//    backtrace_symbols_fd(array, size, STDERR_FILENO);
+
+//	for (auto & r : shownDialogs()->all()) {
+//		r->_update = [this, p=&r](){
+//			qDebug() << "r->_update" << p;
+//			repaint();
+//		};
+//	}
+
 	Painter p(this);
 
 	p.setInactive(
@@ -500,6 +516,10 @@ void InnerWidget::paintEvent(QPaintEvent *e) {
 
 			const auto promoted = fixedOnTopCount();
 			const auto paintDialog = [&](not_null<Row*> row) {
+//				row->_update = [this, p=&row](){
+////					qDebug() << "r->_update" << p;
+//					repaint();
+//				};
 				const auto pinned = row->pos() - promoted;
 				const auto count = _pinnedRows.size();
 				const auto xadd = 0;
@@ -512,6 +532,7 @@ void InnerWidget::paintEvent(QPaintEvent *e) {
 				const auto key = row->key();
 				const auto isActive = (key == active);
 				const auto isSelected = (key == selected);
+//				qDebug() << "Ui::RowPainter::paint(1";
 				Ui::RowPainter::Paint(p, row, validateVideoUserpic(row), {
 					.st = _st,
 					.folder = _openedFolder,
@@ -523,6 +544,7 @@ void InnerWidget::paintEvent(QPaintEvent *e) {
 					.selected = isSelected,
 					.paused = videoPaused,
 					.narrow = (fullWidth < st::columnMinimalWidthLeft),
+					.drawUpdateFunc = [this]{repaint();},
 				});
 				if (xadd || yadd) {
 					p.translate(-xadd, -yadd);
@@ -637,6 +659,7 @@ void InnerWidget::paintEvent(QPaintEvent *e) {
 						: (from == (isPressed()
 							? _filteredPressed
 							: _filteredSelected));
+					qDebug() << "Ui::RowPainter::paint(2";
 					Ui::RowPainter::Paint(p, row, validateVideoUserpic(row), {
 						.st = _st,
 						.folder = _openedFolder,
@@ -677,6 +700,7 @@ void InnerWidget::paintEvent(QPaintEvent *e) {
 					const auto selected = (from == (isPressed()
 						? _peerSearchPressed
 						: _peerSearchSelected));
+					qDebug() << "Ui::RowPainter::paint(3";
 					paintPeerSearchResult(p, result.get(), {
 						.st = &st::defaultDialogRow,
 						.now = ms,
@@ -2483,6 +2507,7 @@ void InnerWidget::editOpenedFilter() {
 }
 
 void InnerWidget::refresh(bool toTop) {
+	qDebug() << "InnerWidget::refresh" << toTop;
 	if (needCollapsedRowsRefresh()) {
 		return refreshWithCollapsedRows(toTop);
 	}
@@ -3298,6 +3323,7 @@ void InnerWidget::setupOnlineStatusCheck() {
 		Data::PeerUpdate::Flag::OnlineStatus
 		| Data::PeerUpdate::Flag::GroupCall
 	) | rpl::start_with_next([=](const Data::PeerUpdate &update) {
+		qDebug() << "PeerUpdate";
 		if (const auto user = update.peer->asUser()) {
 			userOnlineUpdated(user);
 		} else {
@@ -3335,7 +3361,8 @@ void InnerWidget::repaintDialogRowCornerStatus(not_null<History*> history) {
 }
 
 void InnerWidget::userOnlineUpdated(not_null<UserData*> user) {
-	if (user->isSelf()) {
+	qDebug() << "userOnlineUpdated" << user->isSelf();
+	if (!user->isSelf()) {
 		return;
 	}
 	const auto history = session().data().historyLoaded(user);
@@ -3359,7 +3386,8 @@ void InnerWidget::groupHasCallUpdated(not_null<PeerData*> peer) {
 
 void InnerWidget::updateRowCornerStatusShown(not_null<History*> history) {
 	const auto repaint = [=] {
-		repaintDialogRowCornerStatus(history);
+		this->update();
+//		repaintDialogRowCornerStatus(history);
 	};
 	repaint();
 

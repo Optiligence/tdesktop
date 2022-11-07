@@ -57,6 +57,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "apiwrap.h"
 #include "ui/text/format_values.h" // Ui::FormatPhone
 
+#include <QTimer>
+
 namespace Api {
 namespace {
 
@@ -940,12 +942,23 @@ void Updates::updateOnline(crl::time lastNonIdleTime, bool gotOtherOffline) {
 
 		const auto self = session().user();
 		self->onlineTill = base::unixtime::now() + (isOnline ? (config.onlineUpdatePeriod / 1000) : -1);
+		qDebug() << "Updates::updateOnline " << isOnline << self->onlineTill;
+		static QTimer t;
+		if (!t.isActive()) {
+			t.start(1000);
+			t.callOnTimeout([this, &self](){
+				qDebug() << "→ peerUpdated";
+				session().changes().peerUpdated(
+					session().user(),
+					Data::PeerUpdate::Flag::OnlineStatus);
+			});
+		}
 		session().changes().peerUpdated(
 			self,
 			Data::PeerUpdate::Flag::OnlineStatus);
 		if (!isOnline) { // Went offline, so we need to save message draft to the cloud.
 			api().saveCurrentDraftToCloud();
-			session().data().maybeStopWatchForOffline(self);
+//			session().data().maybeStopWatchForOffline(self);
 		}
 
 		_lastSetOnline = ms;
@@ -957,6 +970,7 @@ void Updates::updateOnline(crl::time lastNonIdleTime, bool gotOtherOffline) {
 }
 
 void Updates::checkIdleFinish(crl::time lastNonIdleTime) {
+	qDebug() << "checkIdleFinish";
 	if (!lastNonIdleTime) {
 		lastNonIdleTime = Core::App().lastNonIdleTime();
 	}
@@ -1854,6 +1868,7 @@ void Updates::feedUpdate(const MTPUpdate &update) {
 			case mtpc_userStatusOffline: user->onlineTill = d.vstatus().c_userStatusOffline().vwas_online().v; break;
 			case mtpc_userStatusOnline: user->onlineTill = d.vstatus().c_userStatusOnline().vexpires().v; break;
 			}
+			qDebug() << "Updates::feedUpdate " << user << user->onlineTill;
 			session().changes().peerUpdated(
 				user,
 				Data::PeerUpdate::Flag::OnlineStatus);

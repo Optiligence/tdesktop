@@ -48,6 +48,7 @@ struct PaintContext {
 	bool search = false;
 	bool narrow = false;
 	bool displayUnreadInfo = false;
+	Fn<void()> drawUpdateFunc;
 };
 
 const style::icon *ChatTypeIcon(
