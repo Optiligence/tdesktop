@@ -958,7 +958,7 @@ void Updates::updateOnline(crl::time lastNonIdleTime, bool gotOtherOffline) {
 			Data::PeerUpdate::Flag::OnlineStatus);
 		if (!isOnline) { // Went offline, so we need to save message draft to the cloud.
 			api().saveCurrentDraftToCloud();
-			session().data().maybeStopWatchForOffline(self);
+//			session().data().maybeStopWatchForOffline(self);
 		}
 
 		_lastSetOnline = ms;

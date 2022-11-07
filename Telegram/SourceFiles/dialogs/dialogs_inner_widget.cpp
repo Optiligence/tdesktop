@@ -3341,7 +3341,8 @@ void InnerWidget::repaintDialogRowCornerStatus(not_null<History*> history) {
 }
 
 void InnerWidget::userOnlineUpdated(not_null<UserData*> user) {
-	if (user->isSelf()) {
+	qDebug() << "userOnlineUpdated" << user->isSelf();
+	if (!user->isSelf()) {
 		return;
 	}
 	const auto history = session().data().historyLoaded(user);
@@ -3364,7 +3365,7 @@ void InnerWidget::groupHasCallUpdated(not_null<PeerData*> peer) {
 }
 
 void InnerWidget::updateRowCornerStatusShown(not_null<History*> history) {
-	const auto repaint = [this] {
+	const auto repaint = [=] {
 		this->update();
 //		repaintDialogRowCornerStatus(history);
 	};
