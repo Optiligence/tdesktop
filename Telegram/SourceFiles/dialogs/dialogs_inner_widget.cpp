@@ -459,7 +459,7 @@ void InnerWidget::paintEvent(QPaintEvent *e) {
 
 	for (auto & r : shownDialogs()->all()) {
 		r->_update = [this](){
-			qDebug() << "r->_update";
+//			qDebug() << "r->_update";
 			repaint();
 		};
 	}
@@ -516,7 +516,7 @@ void InnerWidget::paintEvent(QPaintEvent *e) {
 				const auto key = row->key();
 				const auto isActive = (key == active);
 				const auto isSelected = (key == selected);
-				qDebug() << "Ui::RowPainter::paint(1";
+//				qDebug() << "Ui::RowPainter::paint(1";
 				Ui::RowPainter::Paint(p, row, validateVideoUserpic(row), {
 					.st = _st,
 					.folder = _openedFolder,
@@ -3359,7 +3359,7 @@ void InnerWidget::groupHasCallUpdated(not_null<PeerData*> peer) {
 }
 
 void InnerWidget::updateRowCornerStatusShown(not_null<History*> history) {
-	qDebug() << "updateRowCornerStatusShown";
+//	qDebug() << "updateRowCornerStatusShown";
 	const auto repaint = [=] {
 		repaintDialogRowCornerStatus(history);
 	};
@@ -3382,12 +3382,8 @@ void InnerWidget::updateRowCornerStatusShown(not_null<History*> history) {
 	if (const auto &[row, top] = findRow(history); row != nullptr) {
 		const auto visible = (top < _visibleBottom)
 			&& (top + _st->height > _visibleTop);
-		qDebug() << "InnerWidget::updateRowCornerStatusShown";
-//		row->_update = Fn<void()>(crl::guard(this, repaint));
-		row->updateCornerBadgeShown(
-			history->peer, row->_update);
-//			visible ? Fn<void()>(crl::guard(this, repaint)) : nullptr);
-//                    Fn<void()>(crl::guard(this, repaint)));
+//		qDebug() << "InnerWidget::updateRowCornerStatusShown";
+		row->updateCornerBadgeShown(history->peer, visible ? row->_update : nullptr);
 	}
 }
 

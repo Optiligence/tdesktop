@@ -182,9 +182,15 @@ void Row::setCornerBadgeShown(
 	if (_cornerBadgeVisible == shouldShow) {
 		return;
 	}
-	qDebug() << "setCornerBadgeShown" << shouldShow << !!_update << !!updateCallback;
-	if (updateCallback) {
-		qDebug() << "ensureCornerBadgeUserpic" << shouldShow;
+	_cornerBadgeVisible = shouldShow;
+//	qDebug() << "setCornerBadgeShown" << shouldShow << !!_update << !!updateCallback;
+	if (_cornerBadgeUserpic && _cornerBadgeUserpic->animation.animating()) {
+//		qDebug() << "animating" << _cornerBadgeUserpic->animation.value(_cornerBadgeVisible);
+		_cornerBadgeUserpic->animation.change(
+			_cornerBadgeVisible ? 1. : 0.,
+			st::dialogsOnlineBadgeDuration);
+	} else if (updateCallback) {
+//		qDebug() << "ensureCornerBadgeUserpic" << shouldShow;
 		ensureCornerBadgeUserpic();
 		_cornerBadgeUserpic->animation.start(
 			std::move(updateCallback),
@@ -192,19 +198,9 @@ void Row::setCornerBadgeShown(
 			_cornerBadgeVisible ? 1. : 0.,
 			st::dialogsOnlineBadgeDuration);
 	}
-	qDebug() << !!_cornerBadgeUserpic << shouldShow;
-	qWarning() << "setCornerBadgeShown" << _cornerBadgeVisible << shouldShow << !!updateCallback
-			   << !!_cornerBadgeUserpic << (_cornerBadgeUserpic && _cornerBadgeUserpic->animation.animating());
-	if (_cornerBadgeUserpic && _cornerBadgeUserpic->animation.animating()) {
-		qDebug() << "animating" << _cornerBadgeUserpic->animation.value(_cornerBadgeVisible);
-		_cornerBadgeUserpic->animation.change(
-			_cornerBadgeVisible ? 1. : 0.,
-			st::dialogsOnlineBadgeDuration);
-	}
-	if (_cornerBadgeVisible == shouldShow) {
-		return;
-	}
-	_cornerBadgeVisible = shouldShow;
+//	qDebug() << !!_cornerBadgeUserpic << shouldShow;
+//	qWarning() << "setCornerBadgeShown" << _cornerBadgeVisible << shouldShow << !!updateCallback
+//			   << !!_cornerBadgeUserpic << (_cornerBadgeUserpic && _cornerBadgeUserpic->animation.animating());
 	if (!_cornerBadgeVisible
 		&& _cornerBadgeUserpic
 		&& !_cornerBadgeUserpic->animation.animating()) {
@@ -212,8 +208,8 @@ void Row::setCornerBadgeShown(
 //        exit(0);
 		_cornerBadgeUserpic = nullptr;
 	}
-	qWarning() << "setCornerBadgeShown2" << _cornerBadgeVisible << shouldShow << !!updateCallback
-			   << !!_cornerBadgeUserpic << (_cornerBadgeUserpic && _cornerBadgeUserpic->animation.animating());
+//	qWarning() << "setCornerBadgeShown2" << _cornerBadgeVisible << shouldShow << !!updateCallback
+//			   << !!_cornerBadgeUserpic << (_cornerBadgeUserpic && _cornerBadgeUserpic->animation.animating());
 }
 
 void Row::updateCornerBadgeShown(
@@ -253,7 +249,7 @@ void Row::ensureCornerBadgeUserpic() const {
 	if (_cornerBadgeUserpic) {
 		return;
 	}
-	qDebug() << "ensureCornerBadgeUserpic2";
+//	qDebug() << "ensureCornerBadgeUserpic2";
 	_cornerBadgeUserpic = std::make_unique<CornerBadgeUserpic>();
 }
 
@@ -295,7 +291,7 @@ void Row::PaintCornerBadgeFrame(
 	q.setBrush(data->active
 		? st::dialogsOnlineBadgeFgActive
 		: st::dialogsOnlineBadgeFg);
-	qWarning() << "PaintCornerBadgeFrame" << "shown" << data->shown << "active" << data->active << "isUser" << peer->isUser() << shrink << skip << size << stroke << data->key;
+//	qWarning() << "PaintCornerBadgeFrame" << "shown" << data->shown << "active" << data->active << "isUser" << peer->isUser() << shrink << skip << size << stroke << data->key;
 	q.drawEllipse(QRectF(
 		context.st->photoSize - skip.x() - size,
 		context.st->photoSize - skip.y() - size,
@@ -310,14 +306,14 @@ void Row::paintUserpic(
 		Ui::VideoUserpic *videoUserpic,
 		History *historyForCornerBadge,
 		const Ui::PaintContext &context) const {
-	qDebug() << "paintUserpic";
+//	qDebug() << "paintUserpic";
 	updateCornerBadgeShown(peer, _update);
 //    row->addRipple(e->pos() - QPoint(0, searchedOffset() + _searchedPressed * _st->height), QSize(width(), _st->height), row->repaint());
 
 	const auto shown = _cornerBadgeUserpic
 		? _cornerBadgeUserpic->animation.value(_cornerBadgeVisible ? 1. : 0.)
 		: _cornerBadgeVisible;
-	qDebug() << "shown" << !!_cornerBadgeUserpic << !!_cornerBadgeVisible << shown;
+//	qDebug() << "shown" << !!_cornerBadgeUserpic << !!_cornerBadgeVisible << shown;
 	if (!historyForCornerBadge || shown == 0.) {
 		BasicRow::paintUserpic(
 			p,
@@ -330,13 +326,13 @@ void Row::paintUserpic(
 					 << !!_cornerBadgeUserpic << (_cornerBadgeUserpic && _cornerBadgeUserpic->animation.animating());
 			_cornerBadgeUserpic = nullptr;
 		}
-		qDebug() << "return";
+//		qDebug() << "return";
 		return;
 	}
 	if (!_cornerBadgeUserpic) {
 		qDebug() << "ensureCornerBadgeUserpic3";
 	}
-	qDebug() << "paintUserpic" << &p << _cornerBadgeVisible;
+//	qDebug() << "paintUserpic" << &p << _cornerBadgeVisible;
 	ensureCornerBadgeUserpic();
 	const auto ratio = style::DevicePixelRatio();
 	const auto added = std::max({
