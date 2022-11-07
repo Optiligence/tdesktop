@@ -194,7 +194,7 @@ InnerWidget::InnerWidget(
 
 	session().data().sendActionManager().speakingAnimationUpdated(
 	) | rpl::start_with_next([=](not_null<History*> history) {
-		repaintDialogRowCornerStatus(history);
+		updateDialogRowCornerStatus(history);
 	}, lifetime());
 
 	setupOnlineStatusCheck();
@@ -3298,15 +3298,15 @@ void InnerWidget::setupOnlineStatusCheck() {
 		Data::PeerUpdate::Flag::OnlineStatus
 		| Data::PeerUpdate::Flag::GroupCall
 	) | rpl::start_with_next([=](const Data::PeerUpdate &update) {
-		if (const auto user = update.peer->asUser()) {
-			userOnlineUpdated(user);
+		if (update.peer->isUser()) {
+			userOnlineUpdated(update.peer);
 		} else {
 			groupHasCallUpdated(update.peer);
 		}
 	}, lifetime());
 }
 
-void InnerWidget::repaintDialogRowCornerStatus(not_null<History*> history) {
+void InnerWidget::updateDialogRowCornerStatus(not_null<History*> history) {
 	const auto user = history->peer->isUser();
 	const auto size = user
 		? st::dialogsOnlineBadgeSize
@@ -3334,15 +3334,16 @@ void InnerWidget::repaintDialogRowCornerStatus(not_null<History*> history) {
 		UpdateRowSection::Default | UpdateRowSection::Filtered);
 }
 
-void InnerWidget::userOnlineUpdated(not_null<UserData*> user) {
-	if (!user->isSelf()) {
+void InnerWidget::userOnlineUpdated(not_null<PeerData*> peer) {
+	const auto user = peer->isSelf() ? nullptr : peer->asUser();
+	if (!user) {
 		return;
 	}
 	const auto history = session().data().historyLoaded(user);
 	if (!history) {
 		return;
 	}
-	updateRowCornerStatusShown(history);
+	updateRowCornerStatusShown(history, Data::IsUserOnline(user));
 }
 
 void InnerWidget::groupHasCallUpdated(not_null<PeerData*> peer) {
@@ -3354,12 +3355,14 @@ void InnerWidget::groupHasCallUpdated(not_null<PeerData*> peer) {
 	if (!history) {
 		return;
 	}
-	updateRowCornerStatusShown(history);
+	updateRowCornerStatusShown(history, Data::ChannelHasActiveCall(group));
 }
 
-void InnerWidget::updateRowCornerStatusShown(not_null<History*> history) {
+void InnerWidget::updateRowCornerStatusShown(
+		not_null<History*> history,
+		bool shown) {
 	const auto repaint = [=] {
-		repaintDialogRowCornerStatus(history);
+		updateDialogRowCornerStatus(history);
 	};
 	repaint();
 

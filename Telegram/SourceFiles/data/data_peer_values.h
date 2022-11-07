@@ -128,7 +128,7 @@ inline auto PeerFullFlagValue(
 [[nodiscard]] QString OnlineTextFull(not_null<UserData*> user, TimeId now);
 [[nodiscard]] bool OnlineTextActive(TimeId online, TimeId now);
 [[nodiscard]] bool OnlineTextActive(not_null<UserData*> user, TimeId now);
-[[nodiscard]] bool IsUserOnline(not_null<UserData*> user, TimeId now = 0);
+[[nodiscard]] bool IsUserOnline(not_null<UserData*> user);
 [[nodiscard]] bool ChannelHasActiveCall(not_null<ChannelData*> channel);
 
 [[nodiscard]] rpl::producer<QImage> PeerUserpicImageValue(

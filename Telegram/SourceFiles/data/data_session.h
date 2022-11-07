@@ -193,9 +193,6 @@ public:
 	void unregisterGroupCall(not_null<GroupCall*> call);
 	GroupCall *groupCall(CallId callId) const;
 
-	void watchForOffline(not_null<UserData*> user, TimeId now = 0);
-	void maybeStopWatchForOffline(not_null<UserData*> user);
-
 	[[nodiscard]] auto invitedToCallUsers(CallId callId) const
 		-> const base::flat_set<not_null<UserData*>> &;
 	void registerInvitedToCallUser(
@@ -719,7 +716,6 @@ private:
 	void setupUserIsContactViewer();
 
 	void checkSelfDestructItems();
-	void checkLocalUsersWentOffline();
 
 	void scheduleNextTTLs();
 	void checkTTLs();
@@ -978,9 +974,6 @@ private:
 
 	std::vector<WallPaper> _wallpapers;
 	uint64 _wallpapersHash = 0;
-
-	base::flat_map<not_null<UserData*>, TimeId> _watchingForOffline;
-	base::Timer _watchForOfflineTimer;
 
 	rpl::event_stream<WebViewResultSent> _webViewResultSent;
 

@@ -1539,9 +1539,9 @@ void TopBarWidget::updateOnlineDisplayTimer() {
 	}
 
 	const auto now = base::unixtime::now();
-	auto minTimeout = 86400 * crl::time(1000);
+	auto minTimeout = crl::time(86400);
 	const auto handleUser = [&](not_null<UserData*> user) {
-		const auto hisTimeout = Data::OnlineChangeTimeout(user, now);
+		auto hisTimeout = Data::OnlineChangeTimeout(user, now);
 		accumulate_min(minTimeout, hisTimeout);
 	};
 	if (const auto user = peer->asUser()) {

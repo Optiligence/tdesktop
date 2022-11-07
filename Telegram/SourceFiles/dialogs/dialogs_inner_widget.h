@@ -247,11 +247,13 @@ private:
 
 	int defaultRowTop(not_null<Row*> row) const;
 	void setupOnlineStatusCheck();
-	void userOnlineUpdated(not_null<UserData*> user);
+	void userOnlineUpdated(not_null<PeerData*> peer);
 	void groupHasCallUpdated(not_null<PeerData*> peer);
 
-	void updateRowCornerStatusShown(not_null<History*> history);
-	void repaintDialogRowCornerStatus(not_null<History*> history);
+	void updateRowCornerStatusShown(
+		not_null<History*> history,
+		bool shown);
+	void updateDialogRowCornerStatus(not_null<History*> history);
 
 	void setupShortcuts();
 	RowDescriptor computeJump(
