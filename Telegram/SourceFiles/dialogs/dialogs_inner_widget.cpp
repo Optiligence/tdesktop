@@ -3298,6 +3298,7 @@ void InnerWidget::setupOnlineStatusCheck() {
 		Data::PeerUpdate::Flag::OnlineStatus
 		| Data::PeerUpdate::Flag::GroupCall
 	) | rpl::start_with_next([=](const Data::PeerUpdate &update) {
+		qDebug() << "PeerUpdate" << update.peer->topBarNameText() << update.peer->isUser() << update.peer->asUser()->onlineTill;
 		if (update.peer->isUser()) {
 			userOnlineUpdated(update.peer);
 		} else {
