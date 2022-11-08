@@ -77,7 +77,7 @@ public:
 
 	void updateCornerBadgeShown(
 		not_null<PeerData*> peer,
-		Fn<void()> updateCallback = []{}) const;
+		Fn<void()> updateCallback = nullptr) const;
 	void paintUserpic(
 		Painter &p,
 		not_null<PeerData*> peer,

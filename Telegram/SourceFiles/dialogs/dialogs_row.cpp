@@ -184,7 +184,7 @@ void Row::setCornerBadgeShown(
 		_cornerBadgeUserpic->animation.change(
 			_cornerBadgeShown ? 1. : 0.,
 			st::dialogsOnlineBadgeDuration);
-	} else if (updateCallback) {
+	} else {
 		ensureCornerBadgeUserpic();
 		_cornerBadgeUserpic->animation.start(
 			std::move(updateCallback),
