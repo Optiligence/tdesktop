@@ -201,24 +201,14 @@ void Row::updateCornerBadgeShown(
 		Fn<void()> updateCallback) const {
 	const auto user = peer->asUser();
 	const auto now = user ? base::unixtime::now() : TimeId();
-//	const auto shown = [&] {
-//		if (user) {
-//			return Data::IsUserOnline(user, now);
-//		} else if (const auto channel = peer->asChannel()) {
-//			return Data::ChannelHasActiveCall(channel);
-//		}
-//		return false;
-//	}();
-	static bool shown{false};
-	static QTimer t;
-	if (!t.isActive()) {
-		t.start(2000);
-		t.callOnTimeout([this, updateCallback](){
-			qDebug() << "set shown" << shown;
-			shown = !shown;
-			setCornerBadgeShown(shown, updateCallback);
-		});
-	}
+	const auto shown = [&] {
+		if (user) {
+			return Data::IsUserOnline(user, now);
+		} else if (const auto channel = peer->asChannel()) {
+			return Data::ChannelHasActiveCall(channel);
+		}
+		return false;
+	}();
 	setCornerBadgeShown(shown, std::move(updateCallback));
 	if (shown && user) {
 		peer->owner().watchForOffline(user, now);

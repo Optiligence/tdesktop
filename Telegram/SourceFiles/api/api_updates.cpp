@@ -45,7 +45,6 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "history/history_item.h"
 #include "history/history_unread_things.h"
 #include "core/application.h"
-#include "qtimer.h"
 #include "storage/storage_account.h"
 #include "storage/storage_facade.h"
 #include "storage/storage_user_photos.h"
@@ -941,17 +940,6 @@ void Updates::updateOnline(crl::time lastNonIdleTime, bool gotOtherOffline) {
 
 		const auto self = session().user();
 		self->onlineTill = base::unixtime::now() + (isOnline ? (config.onlineUpdatePeriod / 1000) : -1);
-		qDebug() << "Updates::updateOnline " << isOnline << self->onlineTill;
-		static QTimer t;
-		if (!t.isActive()) {
-			t.start(1000);
-			t.callOnTimeout([this, &self](){
-				qDebug() << "→ peerUpdated";
-				session().changes().peerUpdated(
-					session().user(),
-					Data::PeerUpdate::Flag::OnlineStatus);
-			});
-		}
 		session().changes().peerUpdated(
 			self,
 			Data::PeerUpdate::Flag::OnlineStatus);
