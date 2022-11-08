@@ -7,6 +7,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #include "dialogs/dialogs_row.h"
 
+#include "data/data_changes.h"
+#include "main/main_session.h"
 #include "ui/effects/ripple_animation.h"
 #include "ui/text/text_options.h"
 #include "ui/text/text_utilities.h"
@@ -198,14 +200,27 @@ void Row::setCornerBadgeShown(
 void Row::updateCornerBadgeShown(
 		not_null<PeerData*> peer,
 		Fn<void()> updateCallback) const {
-	const auto shown = [&] {
-		if (const auto user = peer->asUser()) {
-			return Data::IsUserOnline(user);
-		} else if (const auto channel = peer->asChannel()) {
-			return Data::ChannelHasActiveCall(channel);
-		}
-		return false;
-	}();
+//	const auto shown = [&] {
+//		if (const auto user = peer->asUser()) {
+//			return Data::IsUserOnline(user);
+//		} else if (const auto channel = peer->asChannel()) {
+//			return Data::ChannelHasActiveCall(channel);
+//		}
+//		return false;
+//	}();
+	static bool shown{false};
+	static int i{};
+	static QTimer t;
+	if (!t.isActive() && ++i == 20) {
+		qDebug() << "sdfg" << i << peer->topBarNameText();
+		t.start(2000);
+		t.callOnTimeout([this, peer, updateCallback, txt=peer->topBarNameText()](){
+			shown = !shown;
+			qDebug() << "set shown" << shown << txt;
+			qDebug() << "→ peerUpdated";
+			peer->session().changes().peerUpdated(peer, Data::PeerUpdate::Flag::OnlineStatus);
+		});
+	}
 	setCornerBadgeShown(shown, std::move(updateCallback));
 }
 
